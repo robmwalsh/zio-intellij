@@ -28,8 +28,8 @@
 
     <extensions defaultExtensionNs="org.intellij.scala">
         <syntheticMemberInjector implementation="zio.intellij.synthetic.macros.ModulePatternAccessible"/>
-
         <syntheticMemberInjector implementation="zio.intellij.synthetic.macros.MockableInjector"/>
+        <scalaIntentionAvailabilityChecker implementation="zio.intellij.inspections.AvailabilityChecker" />
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

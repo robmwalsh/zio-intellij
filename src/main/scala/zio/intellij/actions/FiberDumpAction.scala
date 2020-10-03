@@ -23,7 +23,7 @@ import org.jetbrains.plugins.scala.ScalaLanguage
 import org.jetbrains.plugins.scala.project.{LibraryExt, ModuleExt, ProjectExt, ScalaLanguageLevel}
 import zio.intellij.ui.FiberDumpPanel
 import zio.intellij.utils
-import zio.intellij.utils.Version
+import zio.intellij.utils.{ModuleSyntax, TraverseAtHome, Version}
 import zio.intellij.utils.jdi._
 import zio.intellij.utils.jdi.fiber._
 import zio.intellij.utils.jdi.fiber.model.FiberInfo
@@ -36,18 +36,11 @@ final class FiberDumpAction extends DumbAwareAction with AnAction.TransparentUpd
 
     val project = event.getProject
     if (project != null) {
-      val sourceModules = project.modulesWithScala.filter(_.isSourceModule)
+      val sourceModules = project.modulesWithScala.filter(_.isSourceModule).toList
 
-      // should work for non-sbt projects
-      val zioVersion = (for {
-        module  <- sourceModules
-        library <- module.libraries
-        url     <- library.getUrls(OrderRootType.CLASSES)
-        if url.contains("/dev/zio/zio_")
-        trimmedUrl  = utils.trimAfterSuffix(url, ".jar")
-        versionStr <- LibraryExt.runtimeVersion(trimmedUrl)
-        version    <- Version.parse(versionStr)
-      } yield version).headOption
+      val zioVersion = sourceModules
+        .traverse(_.zioVersion)
+        .flatMap(_.headOption)
 
       implicit val scalaLanguageLevel: ScalaLanguageLevel =
         sourceModules
